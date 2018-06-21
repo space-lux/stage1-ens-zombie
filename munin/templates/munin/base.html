@@ -1,0 +1,25 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+	<head>
+		<meta charset="utf-8"/>
+		<link rel="stylesheet" href="{% static 'munin/style.css' %}"/>
+		<link rel="shortcut icon" href="{% static 'munin/favicon.ico' %}"/>
+		<title>{% block title %}Munin{% endblock %}</title>
+		<script type="text/javascript" src="{% static 'munin/DraC.js' %}"></script>
+		<script type="text/javascript" src="{% static 'munin/Voluspa.js' %}"></script>
+		<script type="text/javascript" src="{% static 'munin/ajax.js' %}"></script>
+	</head>
+	<body>
+		<header>
+			{% block header %}
+				<h1>Munin</h1> in Zombie
+			{% endblock %}
+		</header>
+		<section id="contenu">
+			{% block contenu %}
+			{% endblock %}
+		</section>
+		<footer>Munin/Zombie <img src="{% static 'munin/munin50.png' %}" alt="Munin"/></footer>
+	</body>
+</html>

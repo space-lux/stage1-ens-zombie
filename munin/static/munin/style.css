@@ -1,0 +1,22 @@
+body {
+	font-family:sans-serif;
+	background-image:url(/static/munin/munin300_tr.png);
+	background-repeat:no-repeat;
+	background-position:left bottom;
+	background-attachment:fixed;
+	background-color:#ddd;
+}
+
+header {
+	text-align:center;
+	margin-bottom:30px;
+}
+
+#contenu {
+}
+
+footer {
+	text-align:center;
+	width:100%;
+	margin-top:30px;
+}

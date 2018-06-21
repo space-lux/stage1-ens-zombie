@@ -1,0 +1,158 @@
+<div style="text-align:center;">
+	<canvas id="canvas_reseau" width="500" height="400"></canvas>
+	<canvas id="canvas_p_f_prix" width="500" height="400"></canvas>
+</div>
+<script type="text/javascript">
+	var data={
+		labels:[],
+		values:[[],[]]
+	};
+	var agents_aff2=[
+		{label:"bob",value:5},
+		{label:"bob",value:5},
+		{label:"bob",value:5},
+		{label:"bob",value:5},
+		{label:"bob",value:5},
+		{label:"bob",value:5},
+		{label:"bob",value:5},
+		{label:"bob",value:5},
+		{label:"bob",value:5},
+		{label:"bob",value:5},
+		{label:"bob",value:5},
+		{label:"bob",value:5},
+		{label:"bob",value:5},
+		{label:"bob",value:5},
+		{label:"bob",value:5},
+		{label:"bob",value:5},
+		{label:"bob",value:5},
+		{label:"bertand",value:5},
+		{label:"bob",value:5},
+		{label:"bob",value:5},
+		{label:"bob",value:5},
+		{label:"raoul",value:-1}
+	];
+	var type_agents=[];
+	var ordres=[];
+	var agents=[];
+	var agents_aff=[];
+	var prix_reseau=[];
+	
+	function range(mini,maxi,n) {
+		var r=[];
+		step=(maxi-mini)/(n-1);
+		var i=0;
+		for(var i=0;i<n;i++) {
+			r[i]=Math.round((mini*1+i*step)*100)/100;
+		}
+		return r;
+	}
+	
+	function f_p(prix){
+		p=0;
+		for(i in agents) {
+			if(agents[i].prix<=prix && agents[i].value>0)
+				p+=agents[i].value*1;
+		}
+		return p;
+	}
+	
+	function f_c(prix){
+		p=0;
+		for(i in agents) {
+			if(agents[i].prix>=prix && agents[i].value<0)
+				p+=agents[i].value*1;
+		}
+		return p;
+	}
+	
+	function prix_intersect() {
+		var i=0;
+		while(f_p(prix_reseau[i])< -f_c(prix_reseau[i])) {
+			i++;
+		}
+		return prix_reseau[i];
+	}
+	
+	var t=0;
+	function maj_graphique() {
+		var ag_tmp=[];
+		for(z in agents) {
+			ag_tmp[z]={};
+			if(agents_aff[z]) {
+				ag_tmp[z].value=Math.round(10*(1*ag_tmp[z]+1.1*agents[z].value)/2.1)/10;
+			} else {
+				ag_tmp[z].value=agents[z].value;
+			}
+			ag_tmp[z].label=agents[z].label;
+			if(!ag_tmp[z].value)
+				ag_tmp[z].value=agents[z].value;
+		}
+		agents_aff=ag_tmp;
+		DraC.line(DraC.$("canvas_p_f_prix"),data);
+		Voluspa.roundTable(DraC.$("canvas_reseau"),agents_aff);
+	}
+	function maj_data() {
+		var f="/agents.json";
+		function cb() {
+			agents=[];
+			for(i in json_files[f]) {
+				agents[i]={
+					"value":json_files[f][i].fields.puissance,
+					"prix":json_files[f][i].fields.prix,
+					"label":json_files[f][i].fields.nom
+					};
+			}
+			var ag_tmp=agents.slice();
+			ag_tmp.sort(function(a,b){return a.prix-b.prix});
+			for(i in agents) {
+				prix_reseau[i]=ag_tmp[i].prix;
+			}
+			var	mini=prix_reseau[0],
+				maxi=prix_reseau[prix_reseau.length-1];
+			data.labels=range(mini-0.5,maxi*1+0.5,150);
+			for(j in data.labels) {
+				data.values[0][j]=f_p(data.labels[j]);
+				data.values[1][j]=-f_c(data.labels[j]);
+			}
+			var	prix=prix_intersect(),
+				pprod=0,
+				pcons=0,
+				popti=Math.min(f_p(prix),-f_c(prix));
+			
+			for(i in ag_tmp) {
+				if(ag_tmp[i].value>0) {
+					pprod+=ag_tmp[i].value*1;
+					if(pprod>popti) {
+						ag_tmp[i].value-=pprod-popti;
+						pprod=popti;
+					}
+				}
+			}
+			i++;
+			while(i) {
+				i--;
+				if(ag_tmp[i].value<0) {
+					pcons-=ag_tmp[i].value*1;
+					if(pcons>popti) {
+						ag_tmp[i].value-=popti-pcons;
+						pcons=popti;
+					}
+				}
+			}
+		}
+		loadJSON(f,cb);
+	}
+	setInterval(maj_graphique,50);
+	setInterval(maj_data,500);
+	function maj_data_lente() {
+		var f="/type_agents.json";
+		function cb() {
+			type_agents=[];
+			for(i in json_files[f]) {
+				type_agents[json_files[f][i].pk]=json_files[f][i].fields;
+			}
+		}
+		loadJSON(f,cb);
+	}
+	setInterval(maj_data_lente,5000);
+</script>

@@ -1,0 +1,27 @@
+{% extends "munin/base.html" %}
+
+{% block title %}Munin{% endblock %}
+
+{% block header %}<h1>Munin</h1> in Zombie{% endblock %}
+
+{% block contenu %}
+
+<canvas id="canvas" width="800" height="400"></canvas>
+<script type="text/javascript">
+	var data={
+		labels:['bob','jeanne','jérôme','henry'],
+		values:[]
+	};
+	function maj_graphique() {
+		for(var j=0;j<10;j++) {
+			data.values[j]=[0];
+			for(i in data.labels) {
+				data.values[j][i]=Math.random();
+			}
+		}
+		DraC.line(DraC.$("canvas"),data);
+	}
+	setInterval(maj_graphique,500);
+</script>
+
+{% endblock %}
