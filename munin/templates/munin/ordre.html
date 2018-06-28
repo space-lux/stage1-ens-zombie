@@ -1,0 +1,11 @@
+<form method="post" action="" onsubmit="envoi_ordre(this);return false;" onkeypress="this.valide.style.visibility='visible';">
+	{% csrf_token %}
+	<input name="pk" value="{{ ordre.pk }}" required type="hidden"/>
+	<input name="agent" value="{{ agent.pk }}" required type="hidden"/>
+	<label for="puissance">Puissance&nbsp;:&nbsp;</label>
+	<input name="puissance" value="{{ ordre.puissance }}" required maxlength="50" size="5"/>
+	<label for="prix">Prix&nbsp;:&nbsp;</label>
+	<input name="prix" value="{{ ordre.prix }}" required maxlength="50" size="5"/>
+	<input name="valide" type="submit" value="Envoyer" style="visibility:hidden"/>
+	<input type="button" value="Supprimer" onclick="suppr_ordre(this.parentNode)"/>
+</form>

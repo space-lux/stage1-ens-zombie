@@ -1,10 +1,12 @@
 body {
 	font-family:sans-serif;
+	font-size:15px;
 	background-image:url(/static/munin/munin300_tr.png);
 	background-repeat:no-repeat;
 	background-position:left bottom;
 	background-attachment:fixed;
 	background-color:#ddd;
+	padding:50px;
 }
 
 header {
@@ -12,7 +14,8 @@ header {
 	margin-bottom:30px;
 }
 
-#contenu {
+td {
+	padding-top:10px;
 }
 
 footer {

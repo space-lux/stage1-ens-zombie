@@ -15,7 +15,7 @@ function getXMLHttpRequest() {
 	return xhr;
 }
 
-function loadFile(file,callback) {
+function loadFile(file,callback,post) {
 	var xhr=getXMLHttpRequest();
 	xhr.onreadystatechange=function(){
 		if(xhr.readyState==4 && (xhr.status==200||xhr.status==0)){
@@ -24,15 +24,21 @@ function loadFile(file,callback) {
 				callback();
 		}
 	}
-	xhr.open("GET",file,true);
-	xhr.send();
+	
+	if(post) {
+		xhr.open("POST",file,true);
+		xhr.send(post);
+	} else{
+		xhr.open("GET",file,true);
+		xhr.send();
+	}
 }
 
-function loadJSON(file,callback) {
+function loadJSON(file,callback,post) {
 	function cb() {
 		json_files[file]=JSON.parse(files[file]);
 		if(callback)
 			callback();
 	}
-	loadFile(file,cb);
+	loadFile(file,cb,post);
 }

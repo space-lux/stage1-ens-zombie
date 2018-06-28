@@ -1,0 +1,31 @@
+{% load munin_extra %}
+<tr>
+	<td>
+		<form method="post" action="" onsubmit="envoi_nom(this);return false;" onkeypress="this.valide.style.visibility='visible';">
+			{% csrf_token %}
+			<input name="pk" value="{{ agent.pk }}" required type="hidden"/>
+			<input name="nom" value="{{ agent.nom }}" required maxlength="50" size="30"/>
+			<input name="valide" type="submit" value="Envoyer" style="visibility:hidden"/>
+		</form>
+		Puissance
+		{% if agent.type_agent.puissance|float > 0 %}
+			produite
+		{% else %}
+			consommée
+		{% endif %}
+		max : {{agent.type_agent.puissance|float|abs}}
+		<br />
+		<form method="post" action="" onsubmit="ajout_ordre(this);return false;">
+			{% csrf_token %}
+			<input name="agent" value="{{ agent.pk }}" required type="hidden"/>
+			<input name="valide" type="submit" value="Ajouter ordre"/>
+		</form>
+	</td>
+	<td>
+		{% with ordres=agent.ordre_set.all|sort_by:'puissance' %}
+			{% for ordre in ordres %}
+				{% include "munin/ordre.html" %}
+			{% endfor %}
+		{% endwith %}
+	</td>
+</tr>

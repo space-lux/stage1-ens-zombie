@@ -4,4 +4,14 @@
 
 {% include "munin/affichage_reseau.html" %}
 
+<div style="text-align:center">
+	<a href="/jeu.html" id="lien_entrer">Entrer</a>
+</div>
+<script type="text/javascript">
+	affiche_nom=function() {
+		if(joueur.nom)
+			DraC.$("lien_entrer").innerText="Entrer en tant que "+joueur.nom;
+	}
+</script>
+
 {% endblock %}

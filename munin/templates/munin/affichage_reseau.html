@@ -3,7 +3,7 @@
 	<canvas id="canvas_p_f_prix" width="500" height="400"></canvas>
 </div>
 <script type="text/javascript">
-	var data={
+	var data_line={
 		labels:[],
 		values:[[],[]]
 	};
@@ -25,7 +25,7 @@
 		{label:"bob",value:5},
 		{label:"bob",value:5},
 		{label:"bob",value:5},
-		{label:"bertand",value:5},
+		{label:"bertrand",value:5},
 		{label:"bob",value:5},
 		{label:"bob",value:5},
 		{label:"bob",value:5},
@@ -33,9 +33,15 @@
 	];
 	var type_agents=[];
 	var ordres=[];
+	var joueurs=[];
+	var joueurs_par_pk=[];
+	var agents_def=[];
 	var agents=[];
+	var agents_par_pk=[];
 	var agents_aff=[];
 	var prix_reseau=[];
+	var joueur={};
+	var affiche_nom=false;
 	
 	function range(mini,maxi,n) {
 		var r=[];
@@ -49,18 +55,18 @@
 	
 	function f_p(prix){
 		p=0;
-		for(i in agents) {
-			if(agents[i].prix<=prix && agents[i].value>0)
-				p+=agents[i].value*1;
+		for(i in ordres) {
+			if(ordres[i].prix*1<=prix && ordres[i].puissance*1>0)
+				p+=ordres[i].puissance*1;
 		}
 		return p;
 	}
 	
 	function f_c(prix){
 		p=0;
-		for(i in agents) {
-			if(agents[i].prix>=prix && agents[i].value<0)
-				p+=agents[i].value*1;
+		for(i in ordres) {
+			if(ordres[i].prix*1>=prix && ordres[i].puissance*1<0)
+				p+=ordres[i].puissance*1;
 		}
 		return p;
 	}
@@ -73,77 +79,144 @@
 		return prix_reseau[i];
 	}
 	
+	function diff(a,prop) {
+		var r=[];
+		if(a.length)
+			r[0]=a[0];
+		if(prop) {
+			r=a.slice();
+			for(var i=a.length-1;i>0;i--) {
+				r[i][prop]=a[i][prop]-a[i-1][prop];
+			}
+		} else {
+			for(var i=a.length-1;i>0;i--) {
+				r[i]=a[i]-a[i-1];
+			}
+		}
+		return r;
+	}
+	
 	var t=0;
 	function maj_graphique() {
 		var ag_tmp=[];
 		for(z in agents) {
 			ag_tmp[z]={};
 			if(agents_aff[z]) {
-				ag_tmp[z].value=Math.round(10*(1*ag_tmp[z]+1.1*agents[z].value)/2.1)/10;
+				ag_tmp[z].value=Math.round(10*(1*agents_aff[z].value+1.1*agents[z].value)/2.1)/10;
 			} else {
-				ag_tmp[z].value=agents[z].value;
+				ag_tmp[z].value=Math.round(10*agents[z].value)/10;
 			}
 			ag_tmp[z].label=agents[z].label;
 			if(!ag_tmp[z].value)
-				ag_tmp[z].value=agents[z].value;
+				ag_tmp[z].value=Math.round(10*agents[z].value)/10;
 		}
 		agents_aff=ag_tmp;
-		DraC.line(DraC.$("canvas_p_f_prix"),data);
+		DraC.line(DraC.$("canvas_p_f_prix"),data_line);
 		Voluspa.roundTable(DraC.$("canvas_reseau"),agents_aff);
 	}
 	function maj_data() {
-		var f="/agents.json";
+		var f="/data.json";
 		function cb() {
 			agents=[];
-			for(i in json_files[f]) {
-				agents[i]={
-					"value":json_files[f][i].fields.puissance,
-					"prix":json_files[f][i].fields.prix,
-					"label":json_files[f][i].fields.nom
-					};
+			for(a in joueurs) {
+				agents[a]={
+					"label":joueurs[a].nom
+					}
 			}
-			var ag_tmp=agents.slice();
+			agents_def=[];
+			agents_par_pk=[];
+			ordres=[];
+			for(i in json_files[f]) {
+				switch(json_files[f][i].model) {
+					case "munin.agent":
+						agents_def.push(json_files[f][i].fields);
+						agents_def[agents_def.length-1].ordres=[];
+						agents_par_pk[json_files[f][i].pk]=agents_def.length-1;
+						break;
+					case "munin.ordre":
+						ordres.push(json_files[f][i].fields);
+						break;
+					case "munin.joueur":
+						joueur=json_files[f][i].fields;
+				}
+			}
+			for(o in ordres) {
+				agents_def[agents_par_pk[ordres[o].agent]].ordres.push(ordres[o]);
+			}
+			for(a in agents_def) {
+				agents_def[a].ordres.sort(function(a,b){return Math.abs(a.puissance)-Math.abs(b.puissance)});
+				agents_def[a].ordres=diff(agents_def[a].ordres,"puissance");
+			}
+			
+			var ag_tmp=ordres.slice();
 			ag_tmp.sort(function(a,b){return a.prix-b.prix});
-			for(i in agents) {
+			for(i in ordres) {
 				prix_reseau[i]=ag_tmp[i].prix;
 			}
 			var	mini=prix_reseau[0],
 				maxi=prix_reseau[prix_reseau.length-1];
-			data.labels=range(mini-0.5,maxi*1+0.5,150);
-			for(j in data.labels) {
-				data.values[0][j]=f_p(data.labels[j]);
-				data.values[1][j]=-f_c(data.labels[j]);
+			data_line.labels=range(mini-0.5,maxi*1+0.5,150);
+			for(j in data_line.labels) {
+				data_line.values[0][j]=f_p(data_line.labels[j]);
+				data_line.values[1][j]=-f_c(data_line.labels[j]);
 			}
 			var	prix=prix_intersect(),
 				pprod=0,
 				pcons=0,
 				popti=Math.min(f_p(prix),-f_c(prix));
 			
-			for(i in ag_tmp) {
-				if(ag_tmp[i].value>0) {
-					pprod+=ag_tmp[i].value*1;
+			for(k in ag_tmp) {
+				if(ag_tmp[k].puissance>0) {
+					pprod+=ag_tmp[k].puissance*1;
 					if(pprod>popti) {
-						ag_tmp[i].value-=pprod-popti;
+						ag_tmp[k].puissance-=pprod-popti;
 						pprod=popti;
 					}
 				}
 			}
-			i++;
-			while(i) {
-				i--;
-				if(ag_tmp[i].value<0) {
-					pcons-=ag_tmp[i].value*1;
+			k++;
+			while(k) {
+				k--;
+				if(ag_tmp[k].puissance<0) {
+					pcons-=ag_tmp[k].puissance*1;
 					if(pcons>popti) {
-						ag_tmp[i].value-=popti-pcons;
+						ag_tmp[k].puissance-=popti-pcons;
 						pcons=popti;
 					}
 				}
 			}
+			for(p in agents) {
+				agents[p].value=0;
+			}
+			for(g in agents_def) {
+				agents_def[g].value=0;
+				for(var i=agents_def[g].ordres.length;i;i--) {
+					agents_def[g].value+=agents_def[g].ordres[i-1].puissance*1;
+				}
+				if(joueurs_par_pk[agents_def[g].joueur])
+					if(agents[joueurs_par_pk[agents_def[g].joueur].i])
+						agents[joueurs_par_pk[agents_def[g].joueur].i].value+=agents_def[g].value*1;
+			}
+			if(affiche_nom)
+				affiche_nom();
 		}
 		loadJSON(f,cb);
+		var f2="/joueurs.json";
+		function cb2(){
+			joueurs=[];
+			for(i in json_files[f2]) {
+				joueurs[i]={
+					'nom':json_files[f2][i].fields.nom,
+					'pk':json_files[f2][i].pk,
+					'i':i
+					};
+				joueurs_par_pk[joueurs[i].pk]=joueurs[i];
+			}
+		}
+		loadJSON(f2,cb2);
 	}
 	setInterval(maj_graphique,50);
-	setInterval(maj_data,500);
+	setInterval(maj_data,1000);
 	function maj_data_lente() {
 		var f="/type_agents.json";
 		function cb() {
@@ -154,5 +227,6 @@
 		}
 		loadJSON(f,cb);
 	}
-	setInterval(maj_data_lente,5000);
+	setTimeout(maj_data_lente,300);
+	setInterval(maj_data_lente,4000);
 </script>

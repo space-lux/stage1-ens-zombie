@@ -130,7 +130,7 @@ var DraC=(function(){
 			c.moveTo(hstart,vpos+vstart);
 			c.lineTo(hpos-hdiv*hcolspacing,vpos+vstart);
 			c.stroke();
-			c.fillText(Math.round(maxi-(vpos)/vdiv),hstart-5,vpos+vstart+fontsize/2);
+			c.fillText(Math.round(10*(maxi-(vpos)/vdiv))/10,hstart-5,vpos+vstart+fontsize/2);
 			vpos-=vlinespacing*vdiv;
 		}
 		

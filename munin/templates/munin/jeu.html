@@ -1,0 +1,59 @@
+{% extends "munin/base.html" %}
+
+{% block contenu %}
+
+{% include "munin/affichage_reseau.html" %}
+
+<div style="text-align:center">
+	<form method="post" action="" onsubmit="envoi_nom(this);return false;" onkeypress="this.valide.style.visibility='visible';">
+		{% csrf_token %}
+		<input name="nom" value="{{ joueur.nom }}" required maxlength="50" size="30"/>
+		<input name="valide" type="submit" value="Envoyer" style="visibility:hidden"/>
+	</form>
+</div>
+<div>
+	<table>
+		{% for agent in joueur.agent_set.all %}
+			{% include "munin/agent.html" %}
+		{% endfor %}
+	</table>
+</div>
+<script type="text/javascript">
+	function envoi_nom(f) {
+		function cb() {
+			f.valide.style.visibility='hidden';
+		}
+		loadFile("/jeu.html",cb,new FormData(f));
+	}
+	function envoi_ordre(f) {
+		function cb() {
+			f.valide.style.visibility='hidden';
+			sortHTML(f.parentNode,function(a,b){
+				return a.puissance.value-b.puissance.value;
+				});
+		}
+		loadFile("/maj_ordre",cb,new FormData(f));
+	}
+	function suppr_ordre(e) {
+		function cb() {
+			e.parentNode.removeChild(e);
+		}
+		loadFile("/suppr_ordre",cb,new FormData(e));
+	}
+	function ajout_ordre(e) {
+		function cb() {
+			var t=DraC.$("template_ordre").content||DraC.$("template_ordre").firstElementChild;// merci IE, on le dira jamais assez
+			e.parentNode.nextElementSibling.appendChild(cloneNode(t));
+			e.parentNode.nextElementSibling.lastElementChild.pk.value=files["/ajout_ordre"];
+			e.parentNode.nextElementSibling.lastElementChild.prix.value=0;
+			e.parentNode.nextElementSibling.lastElementChild.puissance.value=0;
+		}
+		loadFile("/ajout_ordre",cb,new FormData(e));
+	}
+</script>
+
+<template style="display:none;" id="template_ordre">
+	{% include "munin/ordre.html" %}
+</template>
+
+{% endblock %}
