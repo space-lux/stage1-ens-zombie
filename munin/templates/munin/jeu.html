@@ -28,9 +28,27 @@
 	function envoi_ordre(f) {
 		function cb() {
 			f.valide.style.visibility='hidden';
-			sortHTML(f.parentNode,function(a,b){
-				return a.puissance.value-b.puissance.value;
-				});
+		}
+		var fp=f.parentNode;
+		for(var i in fp.children) {
+			if(fp.children[i].prix) {
+				fp.children[i].puissance.value=sign(fp.children[i].puissance_agent.value)*Math.max(0,Math.min(Math.abs(fp.children[i].puissance.value),Math.abs(fp.children[i].puissance_agent.value)));
+			}
+		}
+		sortHTML(fp,function(a,b){
+			return a.puissance.value-b.puissance.value;
+			});
+		for(var i in fp.children) {
+			if(fp.children[i+1]) {
+				if(fp.children[i+1].prix) {
+					fp.children[i].prix.value=Math.min(fp.children[i].prix.value,fp.children[i-1].prix.value);
+				}
+			}
+			if(fp.children[i-1]) {
+				if(fp.children[i-1].prix) {
+					fp.children[i].prix.value=Math.max(fp.children[i].prix.value,fp.children[i-1].prix.value);
+				}
+			}
 		}
 		loadFile("/maj_ordre",cb,new FormData(f));
 	}
@@ -46,6 +64,7 @@
 			e.parentNode.nextElementSibling.appendChild(cloneNode(t));
 			e.parentNode.nextElementSibling.lastElementChild.pk.value=files["/ajout_ordre"];
 			e.parentNode.nextElementSibling.lastElementChild.prix.value=0;
+			e.parentNode.nextElementSibling.lastElementChild.puissance_agent.value=e.puissance.value;
 			e.parentNode.nextElementSibling.lastElementChild.puissance.value=0;
 		}
 		loadFile("/ajout_ordre",cb,new FormData(e));

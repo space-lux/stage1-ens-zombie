@@ -18,6 +18,7 @@
 		<form method="post" action="" onsubmit="ajout_ordre(this);return false;">
 			{% csrf_token %}
 			<input name="agent" value="{{ agent.pk }}" required type="hidden"/>
+			<input name="puissance" value="{{ agent.type_agent.puissance }}" required type="hidden"/>
 			<input name="valide" type="submit" value="Ajouter ordre"/>
 		</form>
 	</td>

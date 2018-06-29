@@ -78,7 +78,7 @@ var DraC=(function(){
 			hdiv=(w-42)/n,
 			hstart=20,
 			fontsize=10,
-			lineweight=10,
+			lineweight=15,
 			vdiv,
 			vstart=lineweight/2,
 			vs=h-fontsize-lineweight-5,
@@ -123,6 +123,12 @@ var DraC=(function(){
 		}
 		
 		vpos=vs+(mini%vlinespacing)*vdiv;
+		
+		if(d.axis) {
+			c.fillText(d.axis[1],hstart,vstart);
+			c.textAlign="end";
+			c.fillText(d.axis[0],hpos-hcolspacing*hdiv,vstart+vs+fontsize);
+		}
 		
 		c.textAlign="end";
 		while(vpos>0) {

@@ -23,3 +23,7 @@ function cloneNode(node) { // MERCI IE8
 	
 	return clone;
 }
+
+function sign(x) {
+	return x? x < 0 ? -1 : 1 : 0;
+}

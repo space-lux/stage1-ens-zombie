@@ -2,6 +2,7 @@
 	{% csrf_token %}
 	<input name="pk" value="{{ ordre.pk }}" required type="hidden"/>
 	<input name="agent" value="{{ agent.pk }}" required type="hidden"/>
+	<input name="puissance_agent" value="{{ agent.type_agent.puissance }}" required type="hidden"/>
 	<label for="puissance">Puissance&nbsp;:&nbsp;</label>
 	<input name="puissance" value="{{ ordre.puissance }}" required maxlength="50" size="5"/>
 	<label for="prix">Prix&nbsp;:&nbsp;</label>

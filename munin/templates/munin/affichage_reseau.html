@@ -4,6 +4,7 @@
 </div>
 <script type="text/javascript">
 	var data_line={
+		axis:["Puissance","Prix"],
 		labels:[],
 		values:[[],[]]
 	};
@@ -54,7 +55,7 @@
 	}
 	
 	function f_p(prix){
-		p=0;
+		var p=0;
 		for(i in ordres) {
 			if(ordres[i].prix*1<=prix && ordres[i].puissance*1>0)
 				p+=ordres[i].puissance*1;
@@ -63,12 +64,42 @@
 	}
 	
 	function f_c(prix){
-		p=0;
+		var p=0;
 		for(i in ordres) {
-			if(ordres[i].prix*1>=prix && ordres[i].puissance*1<0)
+			if(ordres[i].prix*1>prix && ordres[i].puissance*1<0)
 				p+=ordres[i].puissance*1;
 		}
 		return p;
+	}
+	
+	function prix_c(puissance){//puissance>0
+		var	prix=0;
+		var ordres_prix=ordres.slice();
+		ordres_prix.sort(function(a,b){return b.prix-a.prix});
+		for(i in ordres_prix) {
+			if(ordres_prix[i].puissance*1<0) {
+				prix=ordres_prix[i].prix;
+				puissance+=ordres_prix[i].puissance*1;
+			}
+			if(puissance<0)
+				break;
+		}
+		return prix;
+	}
+	
+	function prix_p(puissance){
+		var	prix=0;
+		var ordres_prix=ordres.slice();
+		ordres_prix.sort(function(a,b){return a.prix-b.prix});
+		for(i in ordres_prix) {
+			if(ordres_prix[i].puissance*1>0) {
+				puissance-=ordres_prix[i].puissance;
+				prix=ordres_prix[i].prix;
+			}
+			if(puissance<=0)
+				break;
+		}
+		return prix;
 	}
 	
 	function prix_intersect() {
@@ -102,13 +133,13 @@
 		for(z in agents) {
 			ag_tmp[z]={};
 			if(agents_aff[z]) {
-				ag_tmp[z].value=Math.round(10*(1*agents_aff[z].value+1.1*agents[z].value)/2.1)/10;
+				ag_tmp[z].value=Math.round(100*(1*agents_aff[z].value+1.1*agents[z].value)/2.1)/100;
 			} else {
-				ag_tmp[z].value=Math.round(10*agents[z].value)/10;
+				ag_tmp[z].value=Math.round(100*agents[z].value)/100;
 			}
 			ag_tmp[z].label=agents[z].label;
 			if(!ag_tmp[z].value)
-				ag_tmp[z].value=Math.round(10*agents[z].value)/10;
+				ag_tmp[z].value=Math.round(100*agents[z].value)/100;
 		}
 		agents_aff=ag_tmp;
 		DraC.line(DraC.$("canvas_p_f_prix"),data_line);
@@ -143,30 +174,38 @@
 			for(o in ordres) {
 				agents_def[agents_par_pk[ordres[o].agent]].ordres.push(ordres[o]);
 			}
+			var ag_tmp=ordres.slice();
+			ag_tmp.sort(function(a,b){return a.prix-b.prix});
 			for(a in agents_def) {
 				agents_def[a].ordres.sort(function(a,b){return Math.abs(a.puissance)-Math.abs(b.puissance)});
 				agents_def[a].ordres=diff(agents_def[a].ordres,"puissance");
 			}
 			
-			var ag_tmp=ordres.slice();
-			ag_tmp.sort(function(a,b){return a.prix-b.prix});
 			for(i in ordres) {
 				prix_reseau[i]=ag_tmp[i].prix;
 			}
-			var	mini=prix_reseau[0],
+			var	mini=mini=0,
 				maxi=prix_reseau[prix_reseau.length-1];
-			data_line.labels=range(mini-0.5,maxi*1+0.5,150);
+			
+			maxi=Math.max(f_p(maxi),-f_c(mini));
+			data_line.labels=range(mini,maxi*1+0.5,150);
 			for(j in data_line.labels) {
-				data_line.values[0][j]=f_p(data_line.labels[j]);
-				data_line.values[1][j]=-f_c(data_line.labels[j]);
+				data_line.values[0][j]=prix_p(data_line.labels[j]);
+				data_line.values[1][j]=prix_c(data_line.labels[j]);
 			}
+			
+			//calcul du prix (intersection des prix de prod et de conso)
+			
 			var	prix=prix_intersect(),
 				pprod=0,
 				pcons=0,
-				popti=Math.min(f_p(prix),-f_c(prix));
+				popti=Math.max(f_p(prix),-f_c(prix));
+				//popti=-f_c(prix);
 			
-			for(k in ag_tmp) {
-				if(ag_tmp[k].puissance>0) {
+			//écrétage des puissances
+			
+			for(var k in ag_tmp) {
+				if(ag_tmp[k].puissance*1>0) {
 					pprod+=ag_tmp[k].puissance*1;
 					if(pprod>popti) {
 						ag_tmp[k].puissance-=pprod-popti;
@@ -185,6 +224,32 @@
 					}
 				}
 			}
+			popti=Math.min(pprod,pcons);
+			pcons=0;
+			pprod=0;
+			for(var k in ag_tmp) {
+				if(ag_tmp[k].puissance*1>0) {
+					pprod+=ag_tmp[k].puissance*1;
+					if(pprod>popti) {
+						ag_tmp[k].puissance-=pprod-popti;
+						pprod=popti;
+					}
+				}
+			}
+			k++;
+			while(k) {
+				k--;
+				if(ag_tmp[k].puissance<0) {
+					pcons-=ag_tmp[k].puissance*1;
+					if(pcons>popti) {
+						ag_tmp[k].puissance-=popti-pcons;
+						pcons=popti;
+					}
+				}
+			}
+			
+			//formatage pour l'affichage
+			
 			for(p in agents) {
 				agents[p].value=0;
 			}
