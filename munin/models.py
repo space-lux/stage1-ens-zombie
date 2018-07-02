@@ -13,15 +13,15 @@ class TypeAgent(models.Model):
 
 class Joueur(models.Model):
 	nom=models.CharField(max_length=50,null=True,default=mot)
-	session=models.ForeignKey('sessions.Session',null=True)
+	session=models.ForeignKey('sessions.Session',null=True,ondelete=models.CASCADE)
 	
 	def __str__(self):
 		return self.nom
 
 class Agent(models.Model):
 	nom=models.TextField(null=True,default=mot)
-	type_agent=models.ForeignKey('TypeAgent',null=True)
-	joueur=models.ForeignKey('Joueur',null=True)
+	type_agent=models.ForeignKey('TypeAgent',null=True,ondelete=models.CASCADE)
+	joueur=models.ForeignKey('Joueur',null=True,ondelete=models.CASCADE)
 	
 	def __str__(self):
 		return self.nom
@@ -29,4 +29,4 @@ class Agent(models.Model):
 class Ordre(models.Model):
 	prix=models.CharField(max_length=50,default="0")
 	puissance=models.CharField(max_length=50,default="0")
-	agent=models.ForeignKey('Agent',null=True)
+	agent=models.ForeignKey('Agent',null=True,ondelete=models.CASCADE)
