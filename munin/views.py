@@ -12,12 +12,17 @@ def assignerJoueur(request):
 	else:
 		request.session['joueur']=Joueur.objects.create(session=Session.objects.get(session_key=request.session.session_key))
 		request.session['joueur'].save()
-		tall=TypeAgent.objects.all()
+		aall=Agent.objects.all()
+		if sum([float(a.type_agent.puissance) for a in aall])<0: # équilibrage à peu près du réseau
+			tall=TypeAgent.objects.filter(puissance__gte=0)
+		else:
+			tall=TypeAgent.objects.filter(puissance__lt=0)
 		t=random.choice(tall)
 		a=Agent.objects.create(nom=t.nom+' de '+request.session['joueur'].nom,type_agent=t,joueur=request.session['joueur'])
 		Ordre.objects.create(agent=a,prix=0,puissance=0)
 
 def home(request):
+	request.session.clear_expired()
 	request.session['session créée']=True # trick dégueu pour que l'objet Session soit créé pour la prochaine requête
 	r=render(request,'munin/home.html')
 	r['Cache-Control']='no-cache,no-store'
@@ -45,6 +50,7 @@ def type_agents(request):
 	return r
 	
 def jeu(request):
+	request.session.clear_expired()
 	if not(Joueur.objects.filter(session=request.session.session_key).count()):
 		return redirect('/')
 	assignerJoueur(request)
