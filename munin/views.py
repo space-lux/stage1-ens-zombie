@@ -11,7 +11,6 @@ def assignerJoueur(request):
 		request.session['joueur']=Joueur.objects.get(session=request.session.session_key)
 	else:
 		request.session['joueur']=Joueur.objects.create(session=Session.objects.get(session_key=request.session.session_key))
-		request.session['joueur'].save()
 		aall=Agent.objects.all()
 		if sum([float(a.type_agent.puissance) for a in aall])<0: # équilibrage à peu près du réseau
 			tall=TypeAgent.objects.filter(puissance__gte=0)
@@ -30,15 +29,12 @@ def home(request):
 
 def data(request):
 	request.session['session créée']=True
-	if Joueur.objects.filter(session=request.session.session_key).count():
-		r=HttpResponse(serialize('json',list(Agent.objects.all())+list(Ordre.objects.all())+list([Joueur.objects.get(session=request.session.session_key)]),fields=('prix','puissance','nom','agent','joueur')))
-	else:
-		r=HttpResponse(serialize('json',list(Agent.objects.all())+list(Ordre.objects.all()),fields=('prix','puissance','nom','agent','joueur')))
+	r=HttpResponse(serialize('json',list(Agent.objects.all())+list(Ordre.objects.all())+list(Joueur.objects.filter(session=request.session.session_key)),fields=('prix','puissance','nom','agent','argent','joueur')))
 	r['Cache-Control']='no-cache,no-store'
 	return r
 
 def joueurs(request):
-	r=HttpResponse(serialize('json',Joueur.objects.all(),fields=('nom')))
+	r=HttpResponse(serialize('json',Joueur.objects.all(),fields=('nom',)))
 	r['Cache-Control']='no-cache,no-store'
 	return r
 
@@ -54,16 +50,6 @@ def jeu(request):
 	if not(Joueur.objects.filter(session=request.session.session_key).count()):
 		return redirect('/')
 	assignerJoueur(request)
-	if request.method == 'POST':
-		if 'nom' in request.POST.keys():
-			if 'pk' in request.POST.keys():
-				if request.session['joueur'].agent_set.filter(pk=request.POST['pk']).count():
-					agent=request.session['joueur'].agent_set.get(pk=request.POST['pk'])
-					agent.nom=request.POST['nom']
-					agent.save()
-			else:
-				request.session['joueur'].nom=request.POST['nom']
-				request.session['joueur'].save()
 	r=render(request,'munin/jeu.html',{'joueur':request.session['joueur']})
 	r['Cache-Control']='no-cache,no-store'
 	return r
@@ -73,9 +59,11 @@ def suppr_ordre(request):
 	if request.method == 'POST':
 		r=HttpResponse("Paramètres !")
 		if 'pk' in request.POST.keys():
-			if Ordre.objects.filter(pk=request.POST['pk']).count():
-				if Ordre.objects.get(pk=request.POST['pk']).agent in request.session['joueur'].agent_set.all():
-					Ordre.objects.get(pk=request.POST['pk']).delete()
+			os=Ordre.objects.filter(pk=request.POST['pk'])
+			if os.count():
+				o=os.get()
+				if o.agent in request.session['joueur'].agent_set.all():
+					o.delete()
 					r=HttpResponse("yay")
 	r['Cache-Control']='no-cache,no-store'
 	return r
@@ -85,9 +73,10 @@ def maj_ordre(request):
 	if request.method == 'POST':
 		r=HttpResponse("Paramètres !")
 		if 'pk' in request.POST.keys():
-			if Ordre.objects.filter(pk=request.POST['pk']).count():
-				if Ordre.objects.get(pk=request.POST['pk']).agent in request.session['joueur'].agent_set.all():
-					o=Ordre.objects.get(pk=request.POST['pk'])
+			os=Ordre.objects.filter(pk=request.POST['pk'])
+			if os.count():
+				o=os.get()
+				if o.agent in request.session['joueur'].agent_set.all():
 					if 'puissance' in request.POST.keys():
 						o.puissance=request.POST['puissance']
 					if 'prix' in request.POST.keys():
@@ -97,6 +86,22 @@ def maj_ordre(request):
 	r['Cache-Control']='no-cache,no-store'
 	return r
 	
+def maj_nom(request):
+	r=HttpResponse("POST!!!")
+	if request.method == 'POST':
+		if 'nom' in request.POST.keys():
+			if 'pk' in request.POST.keys():
+				rq=request.session['joueur'].agent_set.filter(pk=request.POST['pk'])
+				if rq.count():
+					agent=rq.get()
+					agent.nom=request.POST['nom']
+					agent.save()
+			else:
+				request.session['joueur'].nom=request.POST['nom']
+				request.session['joueur'].save()
+	r['Cache-Control']='no-cache,no-store'
+	return r
+
 def ajout_ordre(request):
 	r=HttpResponse("POST!!!",status=403)
 	if request.method == 'POST':
@@ -109,5 +114,6 @@ def ajout_ordre(request):
 					o.prix=request.POST['prix']
 				o.save()
 				r=HttpResponse(o.pk)
+	r['Cache-Control']='no-cache,no-store'
 	return r
 	

@@ -13,6 +13,7 @@ class TypeAgent(models.Model):
 
 class Joueur(models.Model):
 	nom=models.CharField(max_length=50,null=True,default=mot)
+	argent=models.CharField(max_length=50,default='0')
 	session=models.ForeignKey('sessions.Session',null=True,on_delete=models.CASCADE)
 	
 	def __str__(self):
