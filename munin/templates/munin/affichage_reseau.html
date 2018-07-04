@@ -8,30 +8,6 @@
 		labels:[],
 		values:[[],[]]
 	};
-	var agents_aff2=[
-		{label:"bob",value:5},
-		{label:"bob",value:5},
-		{label:"bob",value:5},
-		{label:"bob",value:5},
-		{label:"bob",value:5},
-		{label:"bob",value:5},
-		{label:"bob",value:5},
-		{label:"bob",value:5},
-		{label:"bob",value:5},
-		{label:"bob",value:5},
-		{label:"bob",value:5},
-		{label:"bob",value:5},
-		{label:"bob",value:5},
-		{label:"bob",value:5},
-		{label:"bob",value:5},
-		{label:"bob",value:5},
-		{label:"bob",value:5},
-		{label:"bertrand",value:5},
-		{label:"bob",value:5},
-		{label:"bob",value:5},
-		{label:"bob",value:5},
-		{label:"raoul",value:-1}
-	];
 	var type_agents=[];
 	var ordres=[];
 	var joueurs=[];
@@ -66,7 +42,7 @@
 	function f_c(prix){
 		var p=0;
 		for(i in ordres) {
-			if(ordres[i].prix*1>prix && ordres[i].puissance*1<0)
+			if(ordres[i].prix*1>=prix && ordres[i].puissance*1<0)
 				p+=ordres[i].puissance*1;
 		}
 		return p;
@@ -104,7 +80,7 @@
 	
 	function prix_intersect() {
 		var i=0;
-		while(f_p(prix_reseau[i])< -f_c(prix_reseau[i])) {
+		while(f_p(prix_reseau[i])< -f_c(prix_reseau[i]) && i<prix_reseau.length) {
 			i++;
 		}
 		return prix_reseau[i];
@@ -141,6 +117,7 @@
 			if(!ag_tmp[z].value)
 				ag_tmp[z].value=Math.round(100*agents[z].value)/100;
 		}
+		ag_tmp.center=["Prix",prix_intersect()];
 		agents_aff=ag_tmp;
 		DraC.line(DraC.$("canvas_p_f_prix"),data_line);
 		Voluspa.roundTable(DraC.$("canvas_reseau"),agents_aff);
@@ -200,8 +177,7 @@
 				pprod=0,
 				pcons=0,
 				popti=Math.max(f_p(prix),-f_c(prix));
-				//popti=-f_c(prix);
-			
+				popti=-f_c(prix);
 			//écrétage des puissances
 			
 			for(var k in ag_tmp) {
@@ -227,6 +203,7 @@
 			popti=Math.min(pprod,pcons);
 			pcons=0;
 			pprod=0;
+			// deuxième passe
 			for(var k in ag_tmp) {
 				if(ag_tmp[k].puissance*1>0) {
 					pprod+=ag_tmp[k].puissance*1;
@@ -267,6 +244,18 @@
 			// là : màj des sous pour le serveur
 		}
 		loadJSON(f,cb);
+	}
+	setInterval(maj_graphique,50);
+	setInterval(maj_data,1500);
+	function maj_data_lente() {
+		var f="/type_agents.json";
+		function cb() {
+			type_agents=[];
+			for(i in json_files[f]) {
+				type_agents[json_files[f][i].pk]=json_files[f][i].fields;
+			}
+		}
+		loadJSON(f,cb);
 		var f2="/joueurs.json";
 		function cb2(){
 			joueurs=[];
@@ -281,18 +270,6 @@
 		}
 		loadJSON(f2,cb2);
 	}
-	setInterval(maj_graphique,50);
-	setInterval(maj_data,1000);
-	function maj_data_lente() {
-		var f="/type_agents.json";
-		function cb() {
-			type_agents=[];
-			for(i in json_files[f]) {
-				type_agents[json_files[f][i].pk]=json_files[f][i].fields;
-			}
-		}
-		loadJSON(f,cb);
-	}
 	setTimeout(maj_data_lente,300);
-	setInterval(maj_data_lente,4000);
+	setInterval(maj_data_lente,6000);
 </script>
