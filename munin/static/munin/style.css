@@ -24,6 +24,6 @@ footer {
 	margin-top:30px;
 }
 
-#table_type_agents th, #table_type_agents td {
+#table_type_agents th, #table_type_agents td, #table_classement td {
 	padding-right:10px;
 }

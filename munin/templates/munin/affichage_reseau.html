@@ -43,7 +43,7 @@
 	function f_c(prix){
 		var p=0;
 		for(i in ordres) {
-			if(ordres[i].prix*1>=prix && ordres[i].puissance*1<0)
+			if(ordres[i].prix*1>prix && ordres[i].puissance*1<0) // l'inégalité stricte n'est pas "physiquement" correcte mais nécéssaire pour que le reste fonctionne correctement
 				p+=ordres[i].puissance*1;
 		}
 		return p;
@@ -85,7 +85,7 @@
 	
 	function prix_intersect() {
 		var i=0;
-		while(f_p(prix_reseau[i])< -f_c(prix_reseau[i])) {
+		while(f_p(prix_reseau[i])+f_c(prix_reseau[i])<0) {
 			i++;
 		}
 		if(i==prix_reseau.length)
@@ -276,13 +276,14 @@
 				joueurs[i]={
 					'nom':json_files[f2][i].fields.nom,
 					'pk':json_files[f2][i].pk,
-					'i':i
+					'i':i,
+					'argent':json_files[f2][i].fields.argent
 					};
 				joueurs_par_pk[joueurs[i].pk]=joueurs[i];
 			}
 		}
 		loadJSON(f2,cb2);
 	}
-	setTimeout(maj_data_lente,300);
-	setInterval(maj_data_lente,6000);
+	setTimeout(maj_data_lente,400);
+	setInterval(maj_data_lente,3000);
 </script>

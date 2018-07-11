@@ -41,6 +41,13 @@
 		</tbody>
 	</table>
 </div>
+<div style="text-align:center;">
+	<h3>Classement</h3>
+	<table style="margin:auto">
+		<tbody id="table_classement">
+		</tbody>
+	</table>
+</div>
 <div style="display:none">
 	<form method="post" action="" id="form_monnaie">
 		{% csrf_token %}
@@ -148,6 +155,17 @@
 		DraC.$("span_puissance").innerHTML=Math.round(agents[joueurs_par_pk[joueur.pk].i].value*10)/10;
 	}
 	setInterval(vitesse,500);
+	
+	function classement() {
+		var t=DraC.$("table_classement");
+		t.innerHTML="";
+		var j_c=joueurs.slice();
+		j_c.sort(function(a,b){return b.argent-a.argent});
+		for(var i=0;i<j_c.length;i++) {
+			t.innerHTML+="<tr><td>"+(i+1)+"</td><td>"+j_c[i].nom+"</td><td>"+Math.round(j_c[i].argent)+"</td></tr>";
+		}
+	}
+	setInterval(classement,1500);
 </script>
 
 <template style="display:none;" id="template_ordre">

@@ -34,7 +34,7 @@ def data(request):
 	return r
 
 def joueurs(request):
-	r=HttpResponse(serialize('json',Joueur.objects.all(),fields=('nom',)))
+	r=HttpResponse(serialize('json',Joueur.objects.all(),fields=('nom','argent')))
 	r['Cache-Control']='no-cache,no-store'
 	return r
 
