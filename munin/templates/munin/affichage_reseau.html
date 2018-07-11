@@ -19,6 +19,7 @@
 	var prix_reseau=[];
 	var joueur={};
 	var affiche_nom=false;
+	var prix_final=0;
 	
 	function range(mini,maxi,n) {
 		var r=[];
@@ -60,10 +61,12 @@
 			if(puissance<0)
 				break;
 		}
+		if(puissance>0)
+			return 0;
 		return prix;
 	}
 	
-	function prix_p(puissance){
+	function prix_p(puissance,pmax){
 		var	prix=0;
 		var ordres_prix=ordres.slice();
 		ordres_prix.sort(function(a,b){return a.prix-b.prix});
@@ -75,14 +78,18 @@
 			if(puissance<=0)
 				break;
 		}
+		if(puissance>0)
+			return pmax;
 		return prix;
 	}
 	
 	function prix_intersect() {
 		var i=0;
-		while(f_p(prix_reseau[i])< -f_c(prix_reseau[i]) && i<prix_reseau.length) {
+		while(f_p(prix_reseau[i])< -f_c(prix_reseau[i])) {
 			i++;
 		}
+		if(i==prix_reseau.length)
+			i--;
 		return prix_reseau[i];
 	}
 	
@@ -117,7 +124,7 @@
 			if(!ag_tmp[z].value)
 				ag_tmp[z].value=Math.round(100*agents[z].value)/100;
 		}
-		ag_tmp.center=["Prix",prix_intersect()];
+		ag_tmp.center=["Prix",prix_final];
 		agents_aff=ag_tmp;
 		DraC.line(DraC.$("canvas_p_f_prix"),data_line);
 		Voluspa.roundTable(DraC.$("canvas_reseau"),agents_aff);
@@ -146,6 +153,7 @@
 						break;
 					case "munin.joueur":
 						joueur=json_files[f][i].fields;
+						joueur.pk=json_files[f][i].pk;
 				}
 			}
 			for(o in ordres) {
@@ -167,21 +175,22 @@
 			maxi=Math.max(f_p(maxi),-f_c(mini));
 			data_line.labels=range(mini,maxi*1+0.5,150);
 			for(j in data_line.labels) {
-				data_line.values[0][j]=prix_p(data_line.labels[j]);
+				data_line.values[0][j]=prix_p(data_line.labels[j],prix_c(0)*1+1);
 				data_line.values[1][j]=prix_c(data_line.labels[j]);
 			}
 			
 			//calcul du prix (intersection des prix de prod et de conso)
-			
-			var	prix=prix_intersect(),
-				pprod=0,
+			prix_final=prix_intersect()*1;
+				
+			var	pprod=0,
 				pcons=0,
-				popti=Math.max(f_p(prix),-f_c(prix));
-				popti=-f_c(prix);
+				popti=Math.max(-f_c(prix_final),f_p(prix_final));
+				//popti=-f_c(prix_final);
+				
 			//écrétage des puissances
 			
 			for(var k in ag_tmp) {
-				if(ag_tmp[k].puissance*1>0) {
+				if(ag_tmp[k].puissance*1>0 && ag_tmp[k].prix<=prix_final) {
 					pprod+=ag_tmp[k].puissance*1;
 					if(pprod>popti) {
 						ag_tmp[k].puissance-=pprod-popti;
@@ -192,7 +201,7 @@
 			k++;
 			while(k) {
 				k--;
-				if(ag_tmp[k].puissance<0) {
+				if(ag_tmp[k].puissance<0 && ag_tmp[k].prix>=prix_final) {
 					pcons-=ag_tmp[k].puissance*1;
 					if(pcons>popti) {
 						ag_tmp[k].puissance-=popti-pcons;
@@ -230,10 +239,14 @@
 			for(p in agents) {
 				agents[p].value=0;
 			}
+			joueur.cout=0;
 			for(g in agents_def) {
 				agents_def[g].value=0;
 				for(var i=agents_def[g].ordres.length;i;i--) {
 					agents_def[g].value+=agents_def[g].ordres[i-1].puissance*1;
+				}
+				if(agents_def[g].joueur==joueur.pk) {
+					joueur.cout+=agents_def[g].value*type_agents[agents_def[g].type_agent].prix;
 				}
 				if(joueurs_par_pk[agents_def[g].joueur])
 					if(agents[joueurs_par_pk[agents_def[g].joueur].i])

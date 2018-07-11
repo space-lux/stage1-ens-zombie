@@ -7,6 +7,7 @@ class TypeAgent(models.Model):
 	nom=models.TextField(null=True)
 	puissance=models.CharField(max_length=50)
 	prix=models.CharField(max_length=50)
+	prix_achat=models.CharField(max_length=50)
 	
 	def __str__(self):
 		return self.nom

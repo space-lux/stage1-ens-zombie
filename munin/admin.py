@@ -3,7 +3,7 @@ from munin.models import Agent, TypeAgent, Ordre, Joueur
 from django.contrib.sessions.models import Session
 
 class TypeAgentAdmin(admin.ModelAdmin):
-	list_display	= ('nom','puissance','prix')
+	list_display	= ('nom','puissance','prix','prix_achat')
 	ordering		= ('puissance','prix','nom')
 	search_fields	= ('nom',)
 	
@@ -17,4 +17,3 @@ admin.site.register(Ordre,OrdreAdmin)
 admin.site.register(Joueur)
 admin.site.register(Session)
 
-# Register your models here.

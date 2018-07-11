@@ -29,7 +29,7 @@ def home(request):
 
 def data(request):
 	request.session['session créée']=True
-	r=HttpResponse(serialize('json',list(Agent.objects.all())+list(Ordre.objects.all())+list(Joueur.objects.filter(session=request.session.session_key)),fields=('prix','puissance','nom','agent','argent','joueur')))
+	r=HttpResponse(serialize('json',list(Agent.objects.all())+list(Ordre.objects.all())+list(Joueur.objects.filter(session=request.session.session_key)),fields=('prix','puissance','nom','agent','argent','joueur','type_agent')))
 	r['Cache-Control']='no-cache,no-store'
 	return r
 
@@ -50,12 +50,12 @@ def jeu(request):
 	if not(Joueur.objects.filter(session=request.session.session_key).count()):
 		return redirect('/')
 	assignerJoueur(request)
-	r=render(request,'munin/jeu.html',{'joueur':request.session['joueur']})
+	r=render(request,'munin/jeu.html',{'joueur':request.session['joueur'],'type_agents':TypeAgent.objects.all()})
 	r['Cache-Control']='no-cache,no-store'
 	return r
 
 def suppr_ordre(request):
-	r=HttpResponse("POST!!!")
+	r=HttpResponse("POST!!!",status=403)
 	if request.method == 'POST':
 		r=HttpResponse("Paramètres !")
 		if 'pk' in request.POST.keys():
@@ -69,7 +69,7 @@ def suppr_ordre(request):
 	return r
 
 def maj_ordre(request):
-	r=HttpResponse("POST!!!")
+	r=HttpResponse("POST!!!",status=403)
 	if request.method == 'POST':
 		r=HttpResponse("Paramètres !")
 		if 'pk' in request.POST.keys():
@@ -87,7 +87,7 @@ def maj_ordre(request):
 	return r
 	
 def maj_nom(request):
-	r=HttpResponse("POST!!!")
+	r=HttpResponse("POST!!!",status=403)
 	if request.method == 'POST':
 		if 'nom' in request.POST.keys():
 			if 'pk' in request.POST.keys():
@@ -99,8 +99,26 @@ def maj_nom(request):
 			else:
 				request.session['joueur'].nom=request.POST['nom']
 				request.session['joueur'].save()
+			r=HttpResponse("Yay!!!")
 	r['Cache-Control']='no-cache,no-store'
 	return r
+
+def ajout_agent(request):
+	r=HttpResponse("POST!!!",status=403)
+	if request.method == 'POST':
+		if 'type_agent' in request.POST.keys():
+			ts=TypeAgent.objects.filter(pk=request.POST['type_agent'])
+			if ts.count():
+				t=ts.get()
+				if float(t.prix_achat)<=float(request.session['joueur'].argent):
+					a=Agent.objects.create(nom=t.nom+' de '+request.session['joueur'].nom,type_agent=t,joueur=request.session['joueur'])
+					a.save()
+					request.session['joueur'].argent=float(request.session['joueur'].argent)-float(t.prix_achat)
+					request.session['joueur'].save()
+					r=HttpResponse(serialize('json',[a]))
+	r['Cache-Control']='no-cache,no-store'
+	return r
+	
 
 def ajout_ordre(request):
 	r=HttpResponse("POST!!!",status=403)
@@ -108,12 +126,17 @@ def ajout_ordre(request):
 		if 'agent' in request.POST.keys():
 			if request.session['joueur'].agent_set.filter(pk=request.POST['agent']).count():
 				o=Ordre.objects.create(agent=Agent.objects.get(pk=request.POST['agent']))
-				if 'puissance' in request.POST.keys():
-					o.puissance=request.POST['puissance']
-				if 'prix' in request.POST.keys():
-					o.prix=request.POST['prix']
 				o.save()
 				r=HttpResponse(o.pk)
 	r['Cache-Control']='no-cache,no-store'
 	return r
 	
+def maj_argent(request):
+	r=HttpResponse("POST!!!",status=403)
+	if request.method == 'POST':
+		if "total" in request.POST.keys():
+			request.session["joueur"].argent=float(request.session["joueur"].argent)+float(request.POST["total"])
+			request.session["joueur"].save()
+			r=HttpResponse("Yay!!!")
+	r['Cache-Control']='no-cache,no-store'
+	return r

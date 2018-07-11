@@ -1,0 +1,19 @@
+{% load munin_extra %}
+<tr>
+	<td>{{ ta.nom }}</td>
+	<td>{{ ta.prix_achat }}</td>
+	<td>{{ ta.prix }}</td>
+	<td>{{ ta.puissance|float|abs }}</td>
+	<td>
+		<form action="" method="POST" onsubmit="ajout_agent(this);return false;">
+			{% csrf_token %}
+			<input type="hidden" value="{{ ta.pk }}" name="type_agent"/>
+			<input type="hidden" value="{{ ta.puissance }}" name="puissance"/>
+			<input type="hidden" value="{{ ta.prix }}" name="prix"/>
+			<input type="submit" value="Achat"/>
+		</form>
+	</td>
+</tr>
+
+
+
